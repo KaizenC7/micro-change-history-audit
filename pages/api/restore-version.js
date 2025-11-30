@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
-import { diffTexts } from "../../diff.js";
+import { diffWords } from "../../diff.js";
 
 export default function handler(req, res) {
   if (req.method !== "POST") {
@@ -32,7 +32,7 @@ export default function handler(req, res) {
   const restoreText = selected.fullText;
 
   // use your diff algorithm
-  const { addedWords, removedWords } = diffTexts(currentText, restoreText);
+  const { addedWords, removedWords } = diffWords(currentText, restoreText);
 
   // create history entry
   const entry = {
