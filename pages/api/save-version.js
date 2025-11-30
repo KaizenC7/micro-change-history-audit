@@ -1,44 +1,38 @@
-import fs from "fs";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
+import { Redis } from "@upstash/redis";
+import { diffWords } from "../../utils/diff";
 
-export default function handler(req, res) {
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { newText } = req.body;
+  const { text } = req.body;
 
-  const filePath = path.join(process.cwd(), "data", "versions.json");
-  let versions = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, "utf8"))
-    : [];
+  // Get versions array
+  let versions = await redis.get("versions");
+  if (!versions) versions = [];
 
-  // previous text = latest version (if any)
-  const previousText =
-    versions.length > 0 ? versions[0].fullText : "";
+  const previousText = versions[0]?.text || "";
+  const { addedWords, removedWords } = diffWords(previousText, text);
 
-  // Split into words
-  const prevWords = previousText ? previousText.split(/\s+/) : [];
-  const newWords = newText ? newText.split(/\s+/) : [];
-
-  // Word diff
-  const addedWords = newWords.filter((w) => !prevWords.includes(w));
-  const removedWords = prevWords.filter((w) => !newWords.includes(w));
-
-  const entry = {
-    id: uuidv4(),
-    timestamp: new Date().toISOString().slice(0, 16).replace("T", " "),
+  const newVersion = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    text,
+    oldLength: previousText.length,
+    newLength: text.length,
     addedWords,
     removedWords,
-    oldLength: previousText.length,
-    newLength: newText.length,
-    fullText: newText
   };
 
-  versions.unshift(entry);
+  const updated = [newVersion, ...versions];
 
-  fs.writeFileSync(filePath, JSON.stringify(versions, null, 2), "utf8");
+  await redis.set("versions", updated);
 
-  return res.status(200).json(entry);
+  return res.status(200).json({ success: true, version: newVersion });
 }

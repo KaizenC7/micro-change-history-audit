@@ -1,21 +1,11 @@
-import fs from "fs";
-import path from "path";
+import { Redis } from "@upstash/redis";
 
-export default function handler(req, res) {
-  const filePath = path.join(process.cwd(), "data", "versions.json");
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
-  const versions = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, "utf8"))
-    : [];
-
-  const formatted = versions.map((v) => ({
-    id: v.id,
-    timestamp: v.timestamp,
-    addedWords: v.addedWords,
-    removedWords: v.removedWords,
-    oldLength: v.oldLength,
-    newLength: v.newLength
-  }));
-
-  return res.status(200).json(formatted);
+export default async function handler(req, res) {
+  const versions = await redis.get("versions");
+  return res.status(200).json(versions || []);
 }
