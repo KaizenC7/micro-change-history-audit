@@ -27,17 +27,6 @@ export default function Home() {
     loadVersions();
   };
 
-  const restoreVersion = async (id) => {
-    const res = await fetch("/api/restore-version", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id })
-    });
-
-    const restored = await res.json();
-    setText(restored.fullText);
-    loadVersions();
-  };
 
   return (
     <div style={{ padding: "20px", maxWidth: "700px", margin: "auto" }}>
@@ -65,18 +54,15 @@ export default function Home() {
             borderRadius: "6px"
           }}
         >
-          <pre>
-{`id: "${v.id}",
-timestamp: "${v.timestamp}",
-addedWords: ${JSON.stringify(v.addedWords)},
-removedWords: ${JSON.stringify(v.removedWords)},
-oldLength: ${v.oldLength},
-newLength: ${v.newLength}`}
-          </pre>
+                <pre>
+                    {`id: "${v.id}",
+                    timestamp: "${v.timestamp}",
+                    addedWords: ${JSON.stringify(v.addedWords)},
+                    removedWords: ${JSON.stringify(v.removedWords)},
+                    oldLength: ${v.oldLength},
+                    newLength: ${v.newLength}`}
+                </pre>
 
-          <button onClick={() => restoreVersion(v.id)}>
-            Restore this version
-          </button>
         </div>
       ))}
     </div>
