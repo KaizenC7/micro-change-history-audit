@@ -1,21 +1,19 @@
-const normalize = (text) => {
-  if (!text) return [];
-  // split on whitespace and punctuation, keep words with letters/numbers
-  return text
-    .split(/\s+|(?=[,.!?;:\-()])|(?<=['".,!?;:\-()])/)
-    .map(w => w.trim())
-    .filter(Boolean)
-    .map(w => w.toLowerCase());
-};
+export function diffWords(oldText = "", newText = "") {
+  const normalize = (text) => {
+    if (!text) return [];
+    return text
+      .split(/\s+|(?=[,.!?;:\-()])|(?<=['".,!?;:\-()])/)
+      .map(w => w.trim())
+      .filter(Boolean)
+      .map(w => w.toLowerCase());
+  };
 
-const toFreq = (arr) => {
-  const freq = new Map();
-  for (const w of arr) freq.set(w, (freq.get(w) || 0) + 1);
-  return freq;
-};
+  const toFreq = (arr) => {
+    const freq = new Map();
+    for (const w of arr) freq.set(w, (freq.get(w) || 0) + 1);
+    return freq;
+  };
 
-// returns { addedWords: [], removedWords: [], addedCount, removedCount }
-function diffTexts(oldText = "", newText = "") {
   const oldWords = normalize(oldText);
   const newWords = normalize(newText);
 
@@ -27,7 +25,6 @@ function diffTexts(oldText = "", newText = "") {
   let addedCount = 0;
   let removedCount = 0;
 
-  // check words in newF compared to oldF
   for (const [w, newC] of newF.entries()) {
     const oldC = oldF.get(w) || 0;
     if (newC > oldC) {
@@ -37,7 +34,6 @@ function diffTexts(oldText = "", newText = "") {
     }
   }
 
-  // check words removed
   for (const [w, oldC] of oldF.entries()) {
     const newC = newF.get(w) || 0;
     if (oldC > newC) {
@@ -47,11 +43,8 @@ function diffTexts(oldText = "", newText = "") {
     }
   }
 
-  // sort by count desc (optional but nicer)
   addedWords.sort((a, b) => b.count - a.count);
   removedWords.sort((a, b) => b.count - a.count);
 
   return { addedWords, removedWords, addedCount, removedCount };
 }
-
-module.exports = { diffTexts };
