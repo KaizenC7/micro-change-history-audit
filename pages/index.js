@@ -21,7 +21,7 @@ export default function Home() {
     await fetch("/api/save-version", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newText: text })
+      body: JSON.stringify({ text: newText })
     });
 
     loadVersions();
