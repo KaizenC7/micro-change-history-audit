@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { diffWords } from "../../utils/diff";
+import { diffWords } from "../../utils/diff.js";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
